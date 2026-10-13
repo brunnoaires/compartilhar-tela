@@ -1,0 +1,19 @@
+# Compartilhar Tela
+
+Site estático para transmitir a tela em até 1080p/1440p a 60 fps, com o áudio do PC, direto do seu navegador para quem tiver o link. Sem login e sem servidor próprio.
+
+**Usar:** https://brunnoaires.github.io/compartilhar-tela/
+
+## Como funciona
+- Quem compartilha abre o site, escolhe a qualidade e clica em **Começar a compartilhar**.
+- O site gera um link com um código aleatório de 128 bits. Só quem tem o link consegue entrar; dá para exigir aprovação de cada pessoa e remover quem estiver assistindo.
+- O vídeo vai direto do seu PC para cada pessoa via WebRTC (ponto a ponto). O servidor público do PeerJS é usado só para as duas pontas se encontrarem.
+
+## Áudio do PC
+No Chrome ou Edge (Windows), escolha **Tela inteira** e marque **Compartilhar áudio do sistema**. Em abas, marque **Compartilhar áudio da aba**. No macOS, só o áudio de abas.
+
+## Dicas
+- Cada pessoa assistindo consome a taxa escolhida no seu upload (ex.: 12 Mbps × 3 pessoas = 36 Mbps).
+- Se o PC sofrer para codificar 1080p60, troque o codec para **H.264**.
+- Quem assiste pode ver resolução, fps e taxa real em **Estatísticas**.
+- `?srv=host:porta` aponta para outro servidor PeerJS (ex.: um servidor próprio).
