@@ -682,9 +682,10 @@ function startRoom(roomId, myName, created) {
   }
 
   // ---------------- compartilhar a minha tela ----------------
-  // Alguns PCs (visto no Brave/Chrome 155 + headset USB) falham com "Could not start audio source" no modo normal,
-  // mas funcionam com restrictOwnAudio, que usa outro caminho do Windows. O modo que funcionou fica salvo.
-  const loadMode = () => store.get("ct-audio") || "full";
+  // O padrão é restrictOwnAudio: o som do PC vai sem o do navegador. Sem isso, quem transmite enquanto assiste
+  // a outra tela devolve o áudio dessa tela, e a outra pessoa se ouve com atraso (eco).
+  // Alguns PCs falham com "Could not start audio source" num dos modos e funcionam no outro; o que funcionou fica salvo.
+  const loadMode = () => store.get("ct-audio") || "restrict";
   const pickMode = () => { const m = $("audioMode").value; return m === "auto" ? loadMode() : m; };
   const isAudioError = (e) => e && (e.name === "NotReadableError" || /audio/i.test(e.message || ""));
   const cfg = () => ({
@@ -705,7 +706,7 @@ function startRoom(roomId, myName, created) {
     row("Cada pessoa assistindo", mbps + " Mbps do seu upload");
     row(viewers ? "Com " + plural(viewers, "pessoa", "pessoas") + " agora" : "Com 3 pessoas", (viewers ? viewers : 3) * mbps + " Mbps no total");
     const mode = $("audioMode").value;
-    const audio = { auto: loadMode() === "restrict" ? "Menos o som do navegador (salvo)" : "Todo o som do PC", full: "Todo o som do PC", restrict: "Menos o som do navegador", none: "Vídeo sem som" }[mode];
+    const audio = { auto: loadMode() === "restrict" ? "Menos o som do navegador (evita eco)" : "Todo o som do PC (salvo)", full: "Todo o som do PC", restrict: "Menos o som do navegador", none: "Vídeo sem som" }[mode];
     row("Áudio", audio);
     row("Codec", { H264: "Placa de vídeo, o mais leve para o PC", VP9: "Mais nítido, pesa mais no processador", AV1: "O mais nítido; nem todo navegador recebe", VP8: "Funciona em qualquer navegador", auto: "O navegador escolhe" }[c.codec]);
   }
@@ -716,7 +717,8 @@ function startRoom(roomId, myName, created) {
     const size = { "720": [1280, 720], "1080": [1920, 1080], "1440": [2560, 1440] }[c.quality];
     const video = { frameRate: { ideal: c.fps, max: c.fps } };
     if (size) { video.width = { ideal: size[0], max: size[0] }; video.height = { ideal: size[1], max: size[1] }; }
-    const extra = { systemAudio: "include", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include" };
+    // windowAudio "window": ao escolher uma janela, leva só o som dela, não o do PC inteiro (ignorado onde não existe)
+    const extra = { systemAudio: "include", windowAudio: "window", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include" };
     // áudio sem restrições extras (canais, taxa): elas fazem o Windows falhar com "Could not start audio source"
     const audio = mode === "none" ? false : mode === "restrict" ? { restrictOwnAudio: true } : true;
     const s = await navigator.mediaDevices.getDisplayMedia({ video, audio, ...extra });
@@ -743,15 +745,15 @@ function startRoom(roomId, myName, created) {
     try { s = await capture(mode); }
     catch (e) {
       if (e.name === "NotAllowedError") return;
-      if (mode === "full" && isAudioError(e)) {
+      if (mode !== "none" && isAudioError(e)) {
         // tenta de novo pelo outro caminho de áudio do Windows
-        mode = "restrict";
-        try { s = await capture(mode); if ($("audioMode").value === "auto") store.set("ct-audio", "restrict"); }
+        mode = mode === "full" ? "restrict" : "full";
+        try { s = await capture(mode); if ($("audioMode").value === "auto") store.set("ct-audio", mode); }
         catch (e2) {
           if (isAudioError(e2)) e = e2;
           else {
-            if ($("audioMode").value === "auto") store.set("ct-audio", "restrict");
-            $("shareErr").textContent = "O áudio do PC falhou no modo normal. Clique em “Compartilhar minha tela” de novo para tentar o outro modo.";
+            if ($("audioMode").value === "auto") store.set("ct-audio", mode);
+            $("shareErr").textContent = "O áudio do PC falhou nesse modo. Clique em “Compartilhar minha tela” de novo para tentar o outro modo.";
             return;
           }
         }
