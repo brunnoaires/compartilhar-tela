@@ -23,6 +23,12 @@
 <div class="wrap">
   <h1 style="margin:0 0 4px">Teste de áudio do PC</h1>
   <p class="muted">Deixe uma música tocando. Em cada teste, escolha <b>Tela inteira</b> e marque <b>Compartilhar áudio do sistema</b>. A barra verde deve se mexer com o som.</p>
+  <div class="card">
+    <div style="margin-bottom:8px">Primeiro rode o teste 1. Depois ligue <b>A</b> e rode o 1 de novo; depois ligue <b>B</b> e rode o 1 de novo. Depois rode do 2 ao 5.</div>
+    <button class="sec" id="micBtn">A. Ligar microfone (como no Meet)</button>
+    <button class="sec" id="ctxBtn">B. Ligar som da página (como no Meet)</button>
+    <div class="res muted" id="prep">Microfone: desligado · som da página: desligado</div>
+  </div>
   <div id="tests"></div>
   <div class="card">
     <div style="margin-bottom:6px">Resultado para enviar:</div>
@@ -36,14 +42,36 @@ const extra = { systemAudio: "include", selfBrowserSurface: "exclude", surfaceSw
 const video1080 = { frameRate: { ideal: 60, max: 60 }, width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 } };
 const tests = [
   ["1. Mínimo (video: true, audio: true)", { video: true, audio: true }],
-  ["2. Vídeo 1080p60 do site, sem opções extras", { video: video1080, audio: true }],
-  ["3. Opções extras do site, vídeo simples", { video: true, audio: true, ...extra }],
-  ["4. Exatamente como o site pede", { video: video1080, audio: true, ...extra }],
-  ["5. Sem selfBrowserSurface", { video: video1080, audio: true, systemAudio: "include", surfaceSwitching: "include", monitorTypeSurfaces: "include" }],
-  ["6. Sem surfaceSwitching", { video: video1080, audio: true, systemAudio: "include", selfBrowserSurface: "exclude", monitorTypeSurfaces: "include" }],
+  ["2. Excluir o som do próprio Chrome (restrictOwnAudio: true)", { video: true, audio: { restrictOwnAudio: true }, systemAudio: "include" }],
+  ["3. restrictOwnAudio: false", { video: true, audio: { restrictOwnAudio: false }, systemAudio: "include" }],
+  ["4. suppressLocalAudioPlayback: true", { video: true, audio: { suppressLocalAudioPlayback: true }, systemAudio: "include" }],
+  ["5. windowAudio: system", { video: true, audio: true, systemAudio: "include", windowAudio: "system" }],
 ];
 const results = {};
-let active = null;
+let active = null, mic = null, pageCtx = null, runN = 0;
+const prepState = () => "mic " + (mic ? "ligado" : "desligado") + ", som da página " + (pageCtx ? "ligado" : "desligado");
+function showPrep() { document.getElementById("prep").textContent = "Microfone: " + (mic ? "ligado" : "desligado") + " · som da página: " + (pageCtx ? "ligado" : "desligado"); }
+async function listDevices() {
+  try {
+    const d = await navigator.mediaDevices.enumerateDevices();
+    results["z-dev"] = "Entradas: " + d.filter((x) => x.kind === "audioinput").map((x) => x.label || "?").join(" | ") +
+      "\nSaídas: " + d.filter((x) => x.kind === "audiooutput").map((x) => x.label || "?").join(" | ");
+    writeOut();
+  } catch {}
+}
+document.getElementById("micBtn").onclick = async () => {
+  try { mic = await navigator.mediaDevices.getUserMedia({ audio: true }); results["y-mic"] = "Microfone abriu: " + (mic.getAudioTracks()[0].label || "?"); }
+  catch (e) { results["y-mic"] = "Microfone ERRO " + e.name + ": " + e.message; }
+  showPrep(); listDevices(); writeOut();
+};
+document.getElementById("ctxBtn").onclick = async () => {
+  try {
+    pageCtx = new AudioContext(); const o = pageCtx.createOscillator(); const g = pageCtx.createGain();
+    g.gain.value = 0.0001; o.connect(g).connect(pageCtx.destination); o.start(); await pageCtx.resume();
+    results["y-ctx"] = "Som da página: " + pageCtx.state + " " + pageCtx.sampleRate + " Hz";
+  } catch (e) { results["y-ctx"] = "Som da página ERRO " + e.message; }
+  showPrep(); writeOut();
+};
 
 function writeOut() {
   $out.value = navigator.userAgent + "\n" + Object.keys(results).sort().map((k) => results[k]).join("\n");
@@ -61,12 +89,13 @@ tests.forEach(([name, opts], i) => {
 
   btn.onclick = async () => {
     if (active) active();
+    const key = String(++runN).padStart(3, "0");
     let s;
     try {
       s = await navigator.mediaDevices.getDisplayMedia(opts);
     } catch (e) {
       res.className = "res bad"; res.textContent = "ERRO " + e.name + ": " + e.message;
-      results[i] = name + " -> ERRO " + e.name + ": " + e.message; writeOut(); return;
+      results[key] = name + " [" + prepState() + "] -> ERRO " + e.name + ": " + e.message; writeOut(); return;
     }
     const v = s.getVideoTracks()[0], a = s.getAudioTracks()[0];
     const vs = v ? v.getSettings() : {};
@@ -74,7 +103,7 @@ tests.forEach(([name, opts], i) => {
     let line = "OK · superfície: " + surface + " · vídeo " + (vs.width || "?") + "x" + (vs.height || "?") + "@" + Math.round(vs.frameRate || 0);
     line += a ? " · ÁUDIO: sim (" + (a.label || "sem nome") + ")" : " · ÁUDIO: NÃO veio";
     res.className = "res " + (a ? "ok" : "bad"); res.textContent = line + "\nVerificando se o som chega…";
-    results[i] = name + " -> " + line; writeOut();
+    results[key] = name + " [" + prepState() + "] -> " + line; writeOut();
 
     let raf = 0, ctx = null, peak = 0;
     const stop = () => { cancelAnimationFrame(raf); s.getTracks().forEach((t) => t.stop()); if (ctx) ctx.close(); meter.hidden = true; active = null; };
@@ -94,7 +123,7 @@ tests.forEach(([name, opts], i) => {
         if (performance.now() - t0 > 5000) {
           const heard = peak > 0.005;
           res.textContent = line + "\nSom chegando: " + (heard ? "SIM" : "NÃO (silêncio por 5 s)");
-          results[i] = name + " -> " + line + " · som chegando: " + (heard ? "sim" : "não");
+          results[key] = name + " [" + prepState() + "] -> " + line + " · som chegando: " + (heard ? "sim" : "não");
           writeOut(); stop(); return;
         }
         raf = requestAnimationFrame(loop);
@@ -103,7 +132,7 @@ tests.forEach(([name, opts], i) => {
     } else { setTimeout(stop, 1500); }
   };
 });
-writeOut();
+writeOut(); listDevices();
 document.getElementById("copy").onclick = async () => {
   try { await navigator.clipboard.writeText($out.value); } catch { $out.select(); document.execCommand("copy"); }
   document.getElementById("copy").textContent = "Copiado!";
