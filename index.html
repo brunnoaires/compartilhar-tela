@@ -123,6 +123,15 @@
         Janelas avulsas não levam áudio. No macOS só o áudio de abas funciona.
       </p>
       <p class="err" id="hostErr"></p>
+      <div id="noAudioBox" hidden>
+        <p class="hint">
+          Para corrigir no Windows: abra <b>Configurações de som → Mais configurações de som</b>, clique duas vezes no
+          alto-falante/fone em uso, vá em <b>Avançado</b>, escolha <b>24 bits, 48000 Hz</b> e desmarque
+          <b>“Permitir que aplicativos assumam o controle exclusivo”</b>. Fone Bluetooth em modo chamada (headset) também causa isso.
+          Depois clique em <b>Começar a compartilhar</b> de novo. Compartilhar uma <b>aba</b> com áudio também funciona.
+        </p>
+        <button id="noAudioBtn">Compartilhar sem áudio</button>
+      </div>
     </div>
 
     <div id="live" hidden>
@@ -268,7 +277,7 @@ function preferCodec(sdp, codec) {
 // =====================================================================
 function startHostMode() {
   $("host").hidden = false;
-  let stream = null, peer = null, roomId = null;
+  let stream = null, peer = null, roomId = null, audioFailed = false;
   const viewers = new Map(); // peerId -> { conn, call, name, state }
 
   const cfg = () => ({
@@ -276,23 +285,25 @@ function startHostMode() {
     content: $("content").value, codec: $("codec").value, approval: $("approval").value,
   });
 
-  async function capture() {
+  async function capture(noAudio) {
     const c = cfg();
     const size = { "720": [1280, 720], "1080": [1920, 1080], "1440": [2560, 1440] }[c.quality];
     const video = { frameRate: { ideal: c.fps, max: c.fps } };
     if (size) { video.width = { ideal: size[0], max: size[0] }; video.height = { ideal: size[1], max: size[1] }; }
-    const s = await navigator.mediaDevices.getDisplayMedia({
-      video,
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000, suppressLocalAudioPlayback: false },
-      systemAudio: "include", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include",
-    });
+    const extra = { systemAudio: "include", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include" };
+    // áudio sem restrições: restrições extras (canais, taxa) fazem o Windows falhar com "Could not start audio source"
+    const s = await navigator.mediaDevices.getDisplayMedia({ video, audio: !noAudio, ...extra });
     const vt = s.getVideoTracks()[0];
     if (vt) {
       vt.contentHint = c.content;
       vt.addEventListener("ended", () => { if (stream === s) stopAll(); });
     }
     const at = s.getAudioTracks()[0];
-    if (at) at.contentHint = "music";
+    if (at) {
+      audioFailed = false;
+      at.contentHint = "music";
+      at.applyConstraints({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }).catch(() => {});
+    }
     return s;
   }
 
@@ -300,7 +311,9 @@ function startHostMode() {
     const has = stream && stream.getAudioTracks().length > 0;
     $("audioBadge").innerHTML = has
       ? '<span class="dot live"></span>Áudio sendo enviado'
-      : '<span class="dot wait"></span>Sem áudio (marque “Compartilhar áudio” ao escolher a tela)';
+      : audioFailed
+        ? '<span class="dot wait"></span>Sem áudio: o Windows não deixou capturar o som.'
+        : '<span class="dot wait"></span>Sem áudio (marque “Compartilhar áudio” ao escolher a tela)';
   }
 
   async function tuneSenders(call) {
@@ -393,14 +406,25 @@ function startHostMode() {
     conn.on("error", () => removeViewer(conn.peer, false));
   }
 
-  async function start() {
+  async function start(noAudio) {
     $("hostErr").textContent = "";
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
       $("hostErr").textContent = "Este navegador não permite compartilhar a tela. Use Chrome, Edge ou Firefox num computador.";
       return;
     }
-    try { stream = await capture(); }
-    catch (e) { if (e.name !== "NotAllowedError") $("hostErr").textContent = "Não foi possível capturar a tela: " + e.message; return; }
+    $("noAudioBox").hidden = true;
+    try { stream = await capture(noAudio === true); }
+    catch (e) {
+      if (e.name === "NotAllowedError") return;
+      if (noAudio !== true && (e.name === "NotReadableError" || /audio/i.test(e.message))) {
+        audioFailed = true;
+        $("hostErr").textContent = "O Windows não deixou capturar o áudio do PC (" + e.message + ").";
+        $("noAudioBox").hidden = false;
+        return;
+      }
+      $("hostErr").textContent = "Não foi possível capturar a tela: " + e.message;
+      return;
+    }
 
     $("preview").srcObject = stream;
     $("setup").hidden = true; $("live").hidden = false;
@@ -472,7 +496,8 @@ function startHostMode() {
     }, 1000);
   }
 
-  $("startBtn").onclick = start;
+  $("startBtn").onclick = () => start(false);
+  $("noAudioBtn").onclick = () => start(true);
   $("stopBtn").onclick = stopAll;
   $("switchBtn").onclick = switchSource;
   $("copyBtn").onclick = async () => {
