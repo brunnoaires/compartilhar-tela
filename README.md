@@ -12,6 +12,8 @@ Site estático para transmitir a tela em até 1080p/1440p a 60 fps, com o áudio
 ## Áudio do PC
 No Chrome ou Edge (Windows), escolha **Tela inteira** e marque **Compartilhar áudio do sistema**. Em abas, marque **Compartilhar áudio da aba**. No macOS, só o áudio de abas.
 
+Se o Windows recusar o áudio (`Could not start audio source`), o site tenta sozinho o modo **Som do PC, menos o do navegador** (`restrictOwnAudio`), que usa outro caminho de captura, e lembra a escolha. Nesse modo o som tocado no próprio navegador pode ficar de fora; para ele, compartilhe a aba. A página `teste.html` diagnostica o áudio.
+
 ## Dicas
 - Cada pessoa assistindo consome a taxa escolhida no seu upload (ex.: 12 Mbps × 3 pessoas = 36 Mbps).
 - Se o PC sofrer para codificar 1080p60, troque o codec para **H.264**.

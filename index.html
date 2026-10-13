@@ -107,6 +107,14 @@
             <option value="VP8">VP8</option>
           </select>
         </label>
+        <label>Áudio do PC
+          <select id="audioMode">
+            <option value="auto" selected>Automático</option>
+            <option value="full">Todo o som do PC</option>
+            <option value="restrict">Som do PC, menos o do navegador</option>
+            <option value="none">Sem áudio</option>
+          </select>
+        </label>
         <label>Quem entra
           <select id="approval">
             <option value="auto" selected>Qualquer um com o link</option>
@@ -277,7 +285,13 @@ function preferCodec(sdp, codec) {
 // =====================================================================
 function startHostMode() {
   $("host").hidden = false;
-  let stream = null, peer = null, roomId = null, audioFailed = false;
+  let stream = null, peer = null, roomId = null, audioFailed = false, usedMode = "full";
+  // Alguns PCs (visto no Brave/Chrome 155 + headset USB) falham com "Could not start audio source" no modo normal,
+  // mas funcionam com restrictOwnAudio, que usa outro caminho do Windows. O modo que funcionou fica salvo.
+  const loadMode = () => { try { return localStorage.getItem("ct-audio") || "full"; } catch { return "full"; } };
+  const saveMode = (m) => { try { localStorage.setItem("ct-audio", m); } catch {} };
+  const pickMode = () => { const m = $("audioMode").value; return m === "auto" ? loadMode() : m; };
+  const isAudioError = (e) => e && (e.name === "NotReadableError" || /audio/i.test(e.message || ""));
   const viewers = new Map(); // peerId -> { conn, call, name, state }
 
   const cfg = () => ({
@@ -285,14 +299,16 @@ function startHostMode() {
     content: $("content").value, codec: $("codec").value, approval: $("approval").value,
   });
 
-  async function capture(noAudio) {
+  async function capture(mode) {
     const c = cfg();
     const size = { "720": [1280, 720], "1080": [1920, 1080], "1440": [2560, 1440] }[c.quality];
     const video = { frameRate: { ideal: c.fps, max: c.fps } };
     if (size) { video.width = { ideal: size[0], max: size[0] }; video.height = { ideal: size[1], max: size[1] }; }
     const extra = { systemAudio: "include", selfBrowserSurface: "exclude", surfaceSwitching: "include", monitorTypeSurfaces: "include" };
-    // áudio sem restrições: restrições extras (canais, taxa) fazem o Windows falhar com "Could not start audio source"
-    const s = await navigator.mediaDevices.getDisplayMedia({ video, audio: !noAudio, ...extra });
+    // áudio sem restrições extras (canais, taxa): elas fazem o Windows falhar com "Could not start audio source"
+    const audio = mode === "none" ? false : mode === "restrict" ? { restrictOwnAudio: true } : true;
+    const s = await navigator.mediaDevices.getDisplayMedia({ video, audio, ...extra });
+    usedMode = mode;
     const vt = s.getVideoTracks()[0];
     if (vt) {
       vt.contentHint = c.content;
@@ -310,7 +326,7 @@ function startHostMode() {
   function updateAudioBadge() {
     const has = stream && stream.getAudioTracks().length > 0;
     $("audioBadge").innerHTML = has
-      ? '<span class="dot live"></span>Áudio sendo enviado'
+      ? (usedMode === "restrict" ? '<span class="dot live"></span>Áudio do PC sendo enviado (menos o som do navegador)' : '<span class="dot live"></span>Áudio sendo enviado')
       : audioFailed
         ? '<span class="dot wait"></span>Sem áudio: o Windows não deixou capturar o som.'
         : '<span class="dot wait"></span>Sem áudio (marque “Compartilhar áudio” ao escolher a tela)';
@@ -413,17 +429,33 @@ function startHostMode() {
       return;
     }
     $("noAudioBox").hidden = true;
-    try { stream = await capture(noAudio === true); }
+    let mode = noAudio === true ? "none" : pickMode();
+    try { stream = await capture(mode); }
     catch (e) {
       if (e.name === "NotAllowedError") return;
-      if (noAudio !== true && (e.name === "NotReadableError" || /audio/i.test(e.message))) {
-        audioFailed = true;
-        $("hostErr").textContent = "O Windows não deixou capturar o áudio do PC (" + e.message + ").";
-        $("noAudioBox").hidden = false;
+      if (mode === "full" && isAudioError(e)) {
+        // tenta de novo pelo outro caminho de áudio do Windows
+        mode = "restrict";
+        try { stream = await capture(mode); if ($("audioMode").value === "auto") saveMode("restrict"); }
+        catch (e2) {
+          if (isAudioError(e2)) e = e2;
+          else {
+            if ($("audioMode").value === "auto") saveMode("restrict");
+            $("hostErr").textContent = "O áudio do PC falhou no modo normal. Clique em “Começar a compartilhar” de novo para tentar o outro modo.";
+            return;
+          }
+        }
+      }
+      if (!stream) {
+        if (mode !== "none" && isAudioError(e)) {
+          audioFailed = true;
+          $("hostErr").textContent = "O Windows não deixou capturar o áudio do PC (" + e.message + ").";
+          $("noAudioBox").hidden = false;
+          return;
+        }
+        $("hostErr").textContent = "Não foi possível capturar a tela: " + e.message;
         return;
       }
-      $("hostErr").textContent = "Não foi possível capturar a tela: " + e.message;
-      return;
     }
 
     $("preview").srcObject = stream;
@@ -433,7 +465,7 @@ function startHostMode() {
     $("startBtn").disabled = true;
 
     roomId = randomRoomId();
-    peer = new Peer(roomId, peerOptions());
+    const myPeer = peer = new Peer(roomId, peerOptions());
     peer.on("open", () => {
       const url = new URL(location.href); url.search = location.search; url.hash = roomId;
       $("shareLink").value = url.toString();
@@ -441,11 +473,13 @@ function startHostMode() {
     });
     peer.on("connection", onConnection);
     peer.on("disconnected", () => {
+      if (peer !== myPeer) return;
       $("peerStatus").innerHTML = '<span class="dot wait"></span>Reconectando ao servidor… (quem já está assistindo continua)';
-      setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 1000);
+      setTimeout(() => { if (peer === myPeer && !myPeer.destroyed && myPeer.disconnected) myPeer.reconnect(); }, 1000);
     });
     peer.on("error", (e) => {
       console.error(e);
+      if (peer !== myPeer) return;
       if (e.type === "unavailable-id") { $("peerStatus").textContent = "Conflito de sala, recarregue a página."; return; }
       if (["network", "server-error", "socket-error", "socket-closed"].includes(e.type))
         $("peerStatus").innerHTML = '<span class="dot wait"></span>Problema de conexão com o servidor: ' + e.type;
@@ -455,7 +489,7 @@ function startHostMode() {
 
   async function switchSource() {
     let s;
-    try { s = await capture(); } catch { return; }
+    try { s = await capture(usedMode); } catch (e) { toast("Não foi possível trocar: " + e.message); return; }
     const old = stream; stream = s;
     $("preview").srcObject = s;
     const nv = s.getVideoTracks()[0], na = s.getAudioTracks()[0];
@@ -478,7 +512,8 @@ function startHostMode() {
 
   function stopAll() {
     for (const id of [...viewers.keys()]) removeViewer(id, "end");
-    setTimeout(() => { if (peer) peer.destroy(); peer = null; }, 400);
+    const oldPeer = peer; peer = null;
+    setTimeout(() => { if (oldPeer) oldPeer.destroy(); }, 400);
     if (stream) stream.getTracks().forEach((t) => t.stop());
     stream = null;
     $("preview").srcObject = null;
