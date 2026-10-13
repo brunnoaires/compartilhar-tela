@@ -178,11 +178,11 @@
                 </label>
                 <label>Codec
                   <select id="codec">
-                    <option value="auto" selected>Automático</option>
-                    <option value="H264">H.264 (menos CPU)</option>
+                    <option value="H264" selected>H.264 (placa de vídeo)</option>
                     <option value="VP9">VP9</option>
                     <option value="AV1">AV1</option>
                     <option value="VP8">VP8</option>
+                    <option value="auto">Padrão do navegador</option>
                   </select>
                 </label>
                 <label>Áudio do PC
@@ -197,6 +197,7 @@
             </details>
             <button class="primary full" id="shareBtn" disabled>Compartilhar minha tela</button>
             <p class="hint">Para levar o <b>áudio do PC</b>, escolha <b>Tela inteira</b> e marque <b>“Compartilhar áudio do sistema”</b>. Numa aba, marque “Compartilhar áudio da aba”.</p>
+            <p class="hint"><b>Jogos:</b> use <b>janela sem bordas</b> (“tela cheia em janela”); a tela cheia exclusiva trava a captura. Limitar o FPS do jogo também ajuda.</p>
             <p class="err" id="shareErr"></p>
             <div id="noAudioBox" hidden>
               <p class="hint">
@@ -216,6 +217,7 @@
             </div>
             <p class="hint" id="audioBadge"></p>
             <p class="hint" id="sendingTo"></p>
+            <p class="hint" id="sendHint"></p>
             <div class="row" style="margin-top:10px">
               <button id="switchBtn">Trocar tela</button>
               <button class="danger" id="stopShareBtn">Parar de compartilhar</button>
@@ -328,6 +330,38 @@ function preferCodec(sdp, codec) {
   return lines.join("\r\n");
 }
 
+// ---------- estatísticas de envio: mostra onde está o gargalo ----------
+async function sendStats(pc, prev) {
+  const rep = await pc.getStats();
+  let out = null, src = null;
+  rep.forEach((r) => {
+    if (r.type === "outbound-rtp" && r.kind === "video") out = r;
+    if (r.type === "media-source" && r.kind === "video") src = r;
+  });
+  if (!out) return null;
+  const mbps = prev && out.timestamp > prev.ts ? ((out.bytesSent - prev.bytes) * 8) / (out.timestamp - prev.ts) / 1000 : 0;
+  const codec = out.codecId && rep.get(out.codecId) ? rep.get(out.codecId).mimeType.replace("video/", "") : "";
+  const impl = out.encoderImplementation || "";
+  const hw = out.powerEfficientEncoder === true || /MediaFoundation|NVENC|Nvidia|VideoToolbox|VAAPI|Accelerat|ExternalEncoder/i.test(impl);
+  const sw = !hw && (out.powerEfficientEncoder === false || /libvpx|OpenH264|libaom|dav1d|SVT/i.test(impl));
+  return {
+    next: { bytes: out.bytesSent, ts: out.timestamp },
+    w: out.frameWidth, h: out.frameHeight, fps: out.framesPerSecond, capFps: src ? src.framesPerSecond : null,
+    mbps, codec, enc: hw ? "placa de vídeo" : sw ? "processador" : "", limit: out.qualityLimitationReason || "none",
+  };
+}
+function describeSend(s, wantFps) {
+  const line = "Enviando " + (s.w || "?") + "×" + (s.h || "?") + " @ " + Math.round(s.fps || 0) + " fps · " + s.mbps.toFixed(1) + " Mbps · " +
+    s.codec + (s.enc ? " (" + s.enc + ")" : "") + (s.capFps != null ? " · captura " + Math.round(s.capFps) + " fps" : "");
+  let hint;
+  if (s.limit === "cpu") hint = "Gargalo: o processador não está dando conta. Use o codec H.264, deixe o jogo em janela sem bordas e limite o FPS do jogo.";
+  else if (s.limit === "bandwidth") hint = "Gargalo: a sua internet de upload. Diminua a taxa por pessoa ou a qualidade.";
+  else if (s.capFps != null && s.capFps < wantFps * 0.75) hint = "A captura está em " + Math.round(s.capFps) + " fps. Num jogo, isso costuma ser tela cheia exclusiva: troque para janela sem bordas. (Em tela parada é normal.)";
+  else if (s.enc === "processador") hint = "O vídeo está sendo codificado pelo processador. Se travar, escolha H.264 e veja se a aceleração de hardware do navegador está ligada.";
+  else hint = "Envio sem gargalo. Se ainda travar para alguém, o problema está na internet de quem assiste.";
+  return { line, hint };
+}
+
 // =====================================================================
 //  ORGANIZADOR DA SALA
 //  Um Peer com o id da sala, rodando na aba de algum participante. Ele só guarda a lista de
@@ -416,6 +450,7 @@ function startRoom(roomId, myName, created) {
   const outCalls = new Map();      // id -> { call, at }        (minha tela indo para cada pessoa)
   const inCalls = new Map();       // id -> { call, seq, name, tile, video, ... }  (telas chegando)
   const lastCallAttempt = new Map();
+  let myStatsCall = null, myStatsPrev = null;
   const absentSince = new Map();
 
   // ---- quem pode reabrir uma sala vazia: só quem esteve nela nos últimos 5 minutos ----
@@ -649,7 +684,8 @@ function startRoom(roomId, myName, created) {
       entry.video.muted = entry.muted;
       entry.video.play().catch(() => { entry.muted = true; entry.video.muted = true; entry.video.play().catch(() => {}); updateTileAudio(entry); toast("Clique em 🔇 para ouvir o som"); });
       const pc = call.peerConnection;
-      if (pc) pc.getReceivers().forEach((r) => { if ("playoutDelayHint" in r) r.playoutDelayHint = 0; if ("jitterBufferTarget" in r) r.jitterBufferTarget = 0; });
+      // não força atraso zero (isso desliga a suavização e o vídeo engasga); um buffer pequeno deixa tudo fluido
+      if (pc) pc.getReceivers().forEach((r) => { if ("jitterBufferTarget" in r) r.jitterBufferTarget = 150; });
     });
     call.on("close", () => { if (inCalls.get(call.peer) === entry && entry.call === call) removeIncoming(call.peer); });
     const pc = call.peerConnection;
@@ -936,7 +972,18 @@ function startRoom(roomId, myName, created) {
     if (left) return;
     if (myStream) {
       const vt = myStream.getVideoTracks()[0];
-      if (vt) { const s = vt.getSettings(); $("myStats").textContent = (s.width || "?") + "×" + (s.height || "?") + " @ " + Math.round(s.frameRate || 0) + " fps"; }
+      const oc = [...outCalls.values()].find((o) => o.call.peerConnection && o.call.peerConnection.connectionState === "connected");
+      let st = null;
+      if (oc) { try { st = await sendStats(oc.call.peerConnection, oc === myStatsCall ? myStatsPrev : null); } catch {} }
+      if (st) {
+        myStatsCall = oc; myStatsPrev = st.next;
+        const d = describeSend(st, cfg().fps);
+        $("myStats").textContent = d.line; $("sendHint").textContent = d.hint;
+      } else if (vt) {
+        const s = vt.getSettings();
+        $("myStats").textContent = "Capturando " + (s.width || "?") + "×" + (s.height || "?") + " @ " + Math.round(s.frameRate || 0) + " fps";
+        $("sendHint").textContent = "";
+      }
       renderMyShare();
     }
     for (const entry of inCalls.values()) {
@@ -956,7 +1003,8 @@ function startRoom(roomId, myName, created) {
       if (v.codecId && rep.get(v.codecId)) codec = rep.get(v.codecId).mimeType.replace("video/", "");
       const rtt = pair && pair.currentRoundTripTime != null ? Math.round(pair.currentRoundTripTime * 1000) + " ms" : "?";
       entry.stats.textContent = (v.frameWidth || "?") + "×" + (v.frameHeight || "?") + " @ " + Math.round(v.framesPerSecond || 0) +
-        " fps · " + (kbps / 1000).toFixed(1) + " Mbps · " + codec + " · ping " + rtt;
+        " fps · " + (kbps / 1000).toFixed(1) + " Mbps · " + codec + " · ping " + rtt +
+        (v.freezeCount != null ? " · travadas " + v.freezeCount : "") + (v.packetsLost ? " · perdas " + v.packetsLost : "");
     }
   }, 1000);
 
