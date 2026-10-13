@@ -1,0 +1,584 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T04:18:46.394Z",
+  "title": "Design System: Compartilhar Tela",
+  "extensions": {
+    "colorMeta": {
+      "room": {
+        "role": "neutral",
+        "displayName": "Auditorium",
+        "canonical": "oklch(18.0% 0.011 39.3)",
+        "tonalRamp": [
+          "#0f0a08",
+          "#2a2321",
+          "#47403e",
+          "#66605d",
+          "#87817f",
+          "#a9a3a2",
+          "#cdc8c6",
+          "#f2edeb"
+        ]
+      },
+      "room-2": {
+        "role": "neutral",
+        "displayName": "Auditorium Raised",
+        "canonical": "oklch(20.9% 0.014 41.6)",
+        "tonalRamp": [
+          "#100907",
+          "#2b2320",
+          "#48403d",
+          "#685f5c",
+          "#88807d",
+          "#aba3a0",
+          "#cfc7c5",
+          "#f3edea"
+        ]
+      },
+      "room-3": {
+        "role": "neutral",
+        "displayName": "Seat Fabric",
+        "canonical": "oklch(25.4% 0.017 42.9)",
+        "tonalRamp": [
+          "#110906",
+          "#2d221e",
+          "#4a3f3b",
+          "#695f5b",
+          "#8a807c",
+          "#aca39f",
+          "#d0c7c3",
+          "#f5ece9"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "oklch(31.0% 0.021 42.1)",
+        "tonalRamp": [
+          "#120805",
+          "#2e221d",
+          "#4c3f3a",
+          "#6b5e59",
+          "#8c7f7a",
+          "#aea29d",
+          "#d2c6c2",
+          "#f7ece8"
+        ]
+      },
+      "line-2": {
+        "role": "neutral",
+        "displayName": "Rule Strong",
+        "canonical": "oklch(37.2% 0.027 43.5)",
+        "tonalRamp": [
+          "#130804",
+          "#30211b",
+          "#4f3e37",
+          "#6e5d56",
+          "#8f7e77",
+          "#b1a19b",
+          "#d5c5bf",
+          "#f9ebe5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(94.6% 0.015 77.1)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#282520",
+          "#45413c",
+          "#65605a",
+          "#86827a",
+          "#aaa49c",
+          "#cec8bf",
+          "#f4ede3"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "oklch(75.4% 0.027 63.6)",
+        "tonalRamp": [
+          "#100a05",
+          "#2c231b",
+          "#4a4037",
+          "#6b5f54",
+          "#8d8073",
+          "#b1a294",
+          "#d6c6b8",
+          "#fbecde"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "oklch(62.9% 0.026 55.0)",
+        "tonalRamp": [
+          "#110905",
+          "#2d231c",
+          "#4c3f37",
+          "#6d5e54",
+          "#8f7f74",
+          "#b2a197",
+          "#d6c6bb",
+          "#faebe1"
+        ]
+      },
+      "ticket": {
+        "role": "primary",
+        "displayName": "Room Ticket Red",
+        "canonical": "oklch(47.3% 0.161 24.4)",
+        "tonalRamp": [
+          "#300000",
+          "#570000",
+          "#800213",
+          "#a92e30",
+          "#cc5854",
+          "#ef807a",
+          "#ffa8a0",
+          "#ffd0c8"
+        ]
+      },
+      "ticket-2": {
+        "role": "primary",
+        "displayName": "Stub Red",
+        "canonical": "oklch(42.3% 0.144 24.2)",
+        "tonalRamp": [
+          "#2d0000",
+          "#540000",
+          "#7c1018",
+          "#a13938",
+          "#c3605b",
+          "#e68680",
+          "#ffada6",
+          "#ffd5ce"
+        ]
+      },
+      "ticket-ink": {
+        "role": "primary",
+        "displayName": "Ticket Paper White",
+        "canonical": "oklch(95.7% 0.018 54.0)",
+        "tonalRamp": [
+          "#0e0a08",
+          "#292420",
+          "#47403c",
+          "#675f5b",
+          "#89807b",
+          "#ada39c",
+          "#d2c7bf",
+          "#f9ece4"
+        ]
+      },
+      "ticket-ink-2": {
+        "role": "primary",
+        "displayName": "Ticket Blush",
+        "canonical": "oklch(86.6% 0.047 37.8)",
+        "tonalRamp": [
+          "#150704",
+          "#32201a",
+          "#523c35",
+          "#745a52",
+          "#987a71",
+          "#be9c92",
+          "#e5bfb4",
+          "#ffe5d9"
+        ]
+      },
+      "live": {
+        "role": "tertiary",
+        "displayName": "On-Air Red",
+        "canonical": "oklch(66.9% 0.218 28.5)",
+        "tonalRamp": [
+          "#340000",
+          "#5e0000",
+          "#890000",
+          "#b60f0e",
+          "#e5392e",
+          "#ff6252",
+          "#ff8f7d",
+          "#ffbba7"
+        ]
+      },
+      "wait": {
+        "role": "tertiary",
+        "displayName": "Signal Amber",
+        "canonical": "oklch(76.2% 0.142 71.6)",
+        "tonalRamp": [
+          "#200000",
+          "#411800",
+          "#643500",
+          "#8a5300",
+          "#b17308",
+          "#da9530",
+          "#ffba5d",
+          "#ffe08d"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Signal Green",
+        "canonical": "oklch(75.5% 0.137 155.7)",
+        "tonalRamp": [
+          "#001400",
+          "#00310e",
+          "#005228",
+          "#0f7444",
+          "#349861",
+          "#53be81",
+          "#7de2a5",
+          "#a9ffcc"
+        ]
+      },
+      "err": {
+        "role": "tertiary",
+        "displayName": "Error Salmon",
+        "canonical": "oklch(79.3% 0.120 32.4)",
+        "tonalRamp": [
+          "#220000",
+          "#451107",
+          "#6a2d21",
+          "#914a3c",
+          "#b96959",
+          "#e48976",
+          "#ffac98",
+          "#ffd4c0"
+        ]
+      },
+      "stock-1": {
+        "role": "secondary",
+        "displayName": "Yellow Stock",
+        "canonical": "oklch(83.4% 0.158 89.0)",
+        "tonalRamp": [
+          "#1a0500",
+          "#391f00",
+          "#5a3c00",
+          "#7e5b00",
+          "#a37c00",
+          "#ca9f00",
+          "#f3c331",
+          "#ffe96f"
+        ]
+      },
+      "stock-2": {
+        "role": "secondary",
+        "displayName": "Blue Stock",
+        "canonical": "oklch(66.7% 0.138 257.5)",
+        "tonalRamp": [
+          "#000432",
+          "#002156",
+          "#13407d",
+          "#2f61a6",
+          "#4c82d1",
+          "#6da6f8",
+          "#95cbff",
+          "#bef1ff"
+        ]
+      },
+      "stock-3": {
+        "role": "secondary",
+        "displayName": "Pink Stock",
+        "canonical": "oklch(71.2% 0.157 355.6)",
+        "tonalRamp": [
+          "#26000d",
+          "#4b0027",
+          "#711b45",
+          "#9a3964",
+          "#c45786",
+          "#ef77a9",
+          "#ff9fcd",
+          "#ffc8f2"
+        ]
+      },
+      "stock-4": {
+        "role": "secondary",
+        "displayName": "Green Stock",
+        "canonical": "oklch(71.3% 0.134 157.0)",
+        "tonalRamp": [
+          "#001400",
+          "#00320f",
+          "#005229",
+          "#037445",
+          "#2e9863",
+          "#50be83",
+          "#7fe2a9",
+          "#abffd0"
+        ]
+      },
+      "stock-5": {
+        "role": "secondary",
+        "displayName": "Orange Stock",
+        "canonical": "oklch(76.2% 0.145 61.1)",
+        "tonalRamp": [
+          "#230000",
+          "#451200",
+          "#6a2f00",
+          "#914d00",
+          "#ba6d1b",
+          "#e48e3b",
+          "#ffb365",
+          "#ffda93"
+        ]
+      },
+      "stock-ink": {
+        "role": "secondary",
+        "displayName": "Stock Ink",
+        "canonical": "oklch(19.1% 0.016 47.9)",
+        "tonalRamp": [
+          "#110906",
+          "#2b231f",
+          "#48403c",
+          "#685f5b",
+          "#89807c",
+          "#aba39f",
+          "#cfc7c4",
+          "#f4edea"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The single headline of an entry screen."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Empty-stage message title."
+      },
+      "serial": {
+        "displayName": "Serial",
+        "purpose": "Room code on the ticket, grouped in fours."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Supporting paragraph under the display line, max 52ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default UI text, tabular figures."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Guide steps, member rows, side-panel prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase side-panel headings and field labels."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Admission numbers, stock labels, ledger values, budget totals, state words."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Raw room link and video stats overlays."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ticket-lift",
+        "value": "drop-shadow(0 10px 18px rgba(0,0,0,.35))",
+        "purpose": "CSS filter on the ticket only; follows the notched mask."
+      },
+      {
+        "name": "toast",
+        "value": "0 12px 30px rgba(0,0,0,.45)",
+        "purpose": "Transient confirmation toast."
+      },
+      {
+        "name": "frame-registration",
+        "value": "inset 0 0 0 1px var(--line)",
+        "purpose": "Video frames, preview, empty stage."
+      },
+      {
+        "name": "live-pulse",
+        "value": "0 0 0 0 rgba(255,75,62,.55) to 0 0 0 7px rgba(255,75,62,0)",
+        "purpose": "Live lamp pulse, 2.4s infinite."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "The single ease-out curve for paper-like motion."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Colour and border transitions on buttons and stub."
+      },
+      {
+        "name": "tear",
+        "value": "620ms",
+        "purpose": "Stub tears off: lift, rotate to 14deg, fade away."
+      },
+      {
+        "name": "reprint",
+        "value": "450ms",
+        "purpose": "Stub reprints with a left-to-right clip reveal."
+      },
+      {
+        "name": "stamp",
+        "value": "500ms",
+        "purpose": "New admission number stamped in from scale 1.5."
+      },
+      {
+        "name": "toast",
+        "value": "200ms opacity / 300ms transform",
+        "purpose": "Toast rises 12px and fades in."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "prefers-reduced-motion collapses all animation and transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone-xs",
+        "value": "380px"
+      },
+      {
+        "name": "phone",
+        "value": "640px"
+      },
+      {
+        "name": "stack",
+        "value": "920px"
+      },
+      {
+        "name": "side-narrow",
+        "value": "1100px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default action: seat-fabric fill, strong rule border.",
+      "html": "<button class=\"ds-btn\">Trocar tela</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 16px;background:var(--room-3);color:var(--ink);border:1px solid var(--line-2);border-radius:var(--r);font:600 14px/1.2 var(--sans);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}.ds-btn:hover{border-color:var(--ink-3);background:#33271f}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid var(--stock-1);outline-offset:2px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "One per area: ink fill, dark text.",
+      "html": "<button class=\"ds-btn-primary\">Compartilhar minha tela</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 16px;background:var(--ink);color:var(--room);border:1px solid var(--ink);border-radius:var(--r);font:600 14px/1.2 var(--sans);cursor:pointer;transition:background-color .15s,border-color .15s}.ds-btn-primary:hover{background:#fff;border-color:#fff}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid var(--stock-1);outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Header and low-emphasis actions.",
+      "html": "<button class=\"ds-btn-ghost\">Sair da sala</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 16px;background:transparent;color:var(--ink-2);border:1px solid transparent;border-radius:var(--r);font:600 14px/1.2 var(--sans);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}.ds-btn-ghost:hover{color:var(--ink);background:var(--room-2);border-color:var(--line)}.ds-btn-ghost:focus-visible{outline:2px solid var(--stock-1);outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Uppercase Narrow label over a seat-fabric field.",
+      "html": "<label class=\"ds-field\"><span>Seu nome <em>opcional</em></span><input type=\"text\" placeholder=\"Como os outros vão te ver\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;width:300px}.ds-field>span{font:600 12px/1.2 var(--narrow);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}.ds-field em{font-style:normal;letter-spacing:.04em;text-transform:none;font-weight:500;opacity:.8}.ds-field input{min-height:42px;padding:9px 12px;background:var(--room-3);color:var(--ink);border:1px solid var(--line-2);border-radius:var(--r);font:400 15px/1.3 var(--sans)}.ds-field input::placeholder{color:var(--ink-3)}.ds-field input:hover{border-color:var(--ink-3)}.ds-field input:focus-visible{outline:2px solid var(--stock-1);outline-offset:2px}"
+    },
+    {
+      "name": "Room Ticket",
+      "kind": "custom",
+      "refersTo": "ticket-body",
+      "description": "Signature: red ticket with serial and link; the notched, perforated stub is the copy button.",
+      "html": "<div class=\"ds-ticket\"><div class=\"ds-ticket-body\"><p class=\"ds-serial\">B627·F06D·4FB6</p><p class=\"ds-url\">https://brunnoaires.github.io/compartilhar-tela/#b627f06d4fb6</p></div><button class=\"ds-stub\">Destacar e copiar</button></div>",
+      "css": ".ds-ticket{--notch:9px;display:grid;grid-template-columns:minmax(0,1fr) 104px;width:340px;color:var(--ticket-ink);filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}.ds-ticket-body{min-width:0;padding:16px 18px 18px;background:var(--ticket);border-radius:var(--r) 0 0 var(--r);-webkit-mask:radial-gradient(circle var(--notch) at 100% 0,#0000 96%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 100% 100%,#0000 96%,#000) bottom/100% 51% no-repeat;mask:radial-gradient(circle var(--notch) at 100% 0,#0000 96%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 100% 100%,#0000 96%,#000) bottom/100% 51% no-repeat}.ds-serial{margin:2px 0 8px;font:700 26px/1.05 var(--narrow);letter-spacing:.04em;white-space:nowrap}.ds-url{margin:0;font:500 12px/1.4 var(--mono);color:var(--ticket-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-stub{padding:12px 10px;border:0;border-radius:0 var(--r) var(--r) 0;color:var(--ticket-ink);font:700 13px/1.15 var(--narrow);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;background:linear-gradient(var(--ticket-ink-2) 55%,transparent 0) left top/2px 9px repeat-y,var(--ticket-2);-webkit-mask:radial-gradient(circle var(--notch) at 0 0,#0000 96%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 0 100%,#0000 96%,#000) bottom/100% 51% no-repeat;mask:radial-gradient(circle var(--notch) at 0 0,#0000 96%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 0 100%,#0000 96%,#000) bottom/100% 51% no-repeat;transition:background-color .15s}.ds-stub:hover{background-color:#7a1a1e}.ds-stub:focus-visible{outline:2px solid var(--ticket-ink);outline-offset:-4px}"
+    },
+    {
+      "name": "Tile Strip",
+      "kind": "custom",
+      "refersTo": "stock-label",
+      "description": "Under each frame: sharer stock label, name, live state, tools.",
+      "html": "<div class=\"ds-strip\"><span class=\"ds-stock\">Nº 002</span><span class=\"ds-who\"><b>Ana</b><span class=\"ds-live\">ao vivo</span></span><button class=\"ds-tool\" aria-pressed=\"true\" aria-label=\"Estatísticas\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M5 20V12M10 20V6M15 20v-9M20 20V9\"/></svg></button></div>",
+      "css": ".ds-strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:420px;min-height:52px;padding:6px 6px 6px 0;border-bottom:1px solid var(--line);color:var(--ink);font:400 15px/1.5 var(--sans)}.ds-stock{align-self:stretch;display:flex;align-items:center;padding:0 12px;background:var(--stock-1);color:var(--stock-ink);font:700 13px/1 var(--narrow);letter-spacing:.08em;border-radius:0 0 0 var(--r)}.ds-who{display:flex;align-items:baseline;gap:10px}.ds-who b{font-weight:600}.ds-live{font:700 12px/1 var(--narrow);letter-spacing:.12em;text-transform:uppercase;color:var(--live)}.ds-tool{display:inline-grid;place-items:center;width:40px;height:40px;background:transparent;border:1px solid transparent;border-radius:var(--r);color:var(--ink-2);cursor:pointer}.ds-tool:hover{color:var(--ink);background:var(--room-3)}.ds-tool[aria-pressed=true]{color:var(--ink);background:var(--room-3);border-color:var(--line-2)}.ds-tool:focus-visible{outline:2px solid var(--stock-1);outline-offset:2px}"
+    },
+    {
+      "name": "Admissions List",
+      "kind": "custom",
+      "refersTo": "admission-row",
+      "description": "Ruled, fixed-column member rows: Nº numeral, name, state with stock chip.",
+      "html": "<ol class=\"ds-adm\"><li><span class=\"ds-no\">Nº 001</span><span>Bruno <small>(você)</small></span><span class=\"ds-st\">Assistindo</span></li><li><span class=\"ds-no\">Nº 002</span><span>Ana</span><span class=\"ds-st ds-on\"><i class=\"ds-chip\"></i>Ao vivo</span></li></ol>",
+      "css": ".ds-adm{list-style:none;margin:0;padding:0;width:330px;border-top:1px solid var(--line);color:var(--ink);font:400 14px/1.45 var(--sans)}.ds-adm li{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:46px;padding:6px 0;border-bottom:1px solid var(--line)}.ds-adm small{color:var(--ink-3);font-size:13px}.ds-no{font:600 13px/1 var(--narrow);letter-spacing:.06em;color:var(--ink-3)}.ds-st{display:flex;align-items:center;gap:8px;font:700 12px/1 var(--narrow);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}.ds-st.ds-on{color:var(--live)}.ds-chip{width:10px;height:16px;border-radius:2px;background:var(--stock-2)}"
+    },
+    {
+      "name": "Upload Budget",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "One segment per viewer; total right-aligned in Narrow.",
+      "html": "<div class=\"ds-budget\"><div class=\"ds-bar\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"pending\"></i></div><p class=\"ds-row\"><span>12 Mbps × 3 pessoas · 2 conectadas</span><b>36 Mbps de upload</b></p></div>",
+      "css": ".ds-budget{display:flex;flex-direction:column;gap:8px;width:330px}.ds-bar{display:flex;gap:3px;height:8px}.ds-bar i{flex:1;border-radius:1px;background:var(--line-2)}.ds-bar i.on{background:var(--ink)}.ds-bar i.pending{background:transparent;box-shadow:inset 0 0 0 1px var(--ink-3)}.ds-row{display:flex;justify-content:space-between;gap:12px;margin:0;font:400 13px/1.4 var(--sans);color:var(--ink-2)}.ds-row b{white-space:nowrap;font:700 15px/1.2 var(--narrow);letter-spacing:.02em;color:var(--ink)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Ingresso de Rolo",
+    "overview": "The interface is a darkened auditorium with one paper object in it: the roll ticket. The ground is a warm near-black that recedes so the picture can own the screen, and the only saturated surfaces are card stock. A red ticket is the room's link and key; small coloured stock tags name each person who is sharing, and the same stock follows that person from their video label to their row in the admissions list. Everything else is ink on dark: quiet borders, hairline rules, tabular figures.\n\nDensity is that of an operating panel, not a landing page. The room is a stage plus a fixed side column; the side column reads top to bottom as ticket, admissions, then your own screen with its settings and upload budget. Condensed ticket lettering (Archivo Narrow) carries serials, numbers and labels; Archivo carries the sentences. Motion is short, eased out and paper-like: the stub tears off and reprints, a new admission is stamped in place. Reduced motion collapses all of it.\n\nThe world explicitly rejects the video-call default: slate-grey ground, a blue accent, avatar circles.",
+    "keyCharacteristics": [
+      "Warm near-black auditorium ground in three steps, never neutral grey.",
+      "One paper object (the red ticket) with perforation and stub notches.",
+      "Card-stock colour as identity: five sharer stocks, one per person, reused on tile and row.",
+      "A reserved live red used only for \"ao vivo\" state.",
+      "Condensed, tracked, tabular numerals for serials, admission numbers and budgets.",
+      "Flat panels separated by 1px rules; depth only on the ticket and the toast."
+    ],
+    "rules": [
+      {
+        "name": "The Reserved Red Rule",
+        "body": "`live` means \"on air\" and nothing else. It is never a button colour, a link colour or decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stock Is the Person Rule",
+        "body": "A sharer's stock colour appears wherever that person appears (video label, admission chip) and nowhere else. Red is not a sharer stock; it belongs to the ticket and the live signal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Dark Rule",
+        "body": "Neutrals carry a red-brown hue (around 40 degrees). Do not introduce cool or pure grey surfaces; the only true black is the video letterbox (`#000`).",
+        "section": "colors"
+      },
+      {
+        "name": "The Ticket Printer Rule",
+        "body": "Every number a person compares or reads off (serials, admission numbers, Mbps, resolutions) is set in Archivo Narrow with tabular figures. Sentences never are.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Headline Rule",
+        "body": "Display size appears once per entry screen and never inside the room, where the picture is the headline.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Floats Rule",
+        "body": "Only the ticket and the toast cast shadows. Panels and tiles never do.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Paper Object Rule",
+        "body": "Perforation and notches belong to the ticket and its miniature (brand mark, favicon, ticket icon). Panels, tiles, buttons and inputs are never perforated or notched.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** keep the ground warm near-black (`room`, `room-2`, `room-3`) and let the video letterbox be the only pure black.",
+      "**Do** give each sharer one stock and repeat it on their tile label and admission chip.",
+      "**Do** set serials, admission numbers, Mbps and resolutions in Archivo Narrow with tabular figures.",
+      "**Do** separate side-panel content with 1px `line` rules and fixed columns so state changes in place.",
+      "**Do** show what a setting costs (ledger, budget) next to the setting.",
+      "**Do** keep motion short and eased out (`cubic-bezier(.16, 1, .3, 1)`, 0.15 to 0.62s) and honour reduced motion."
+    ],
+    "donts": [
+      "**Don't** use `live` red for anything but live state.",
+      "**Don't** use red as a sharer stock or as a button fill outside the ticket.",
+      "**Don't** perforate or notch anything except the ticket and its miniature mark.",
+      "**Don't** add avatar circles, a blue accent, or slate-grey surfaces.",
+      "**Don't** put shadows on panels, tiles or buttons."
+    ]
+  }
+}

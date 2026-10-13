@@ -1,0 +1,19 @@
+{
+  "name": "compartilhar-tela",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/archivo": "^5.2.5",
+    "@fontsource/archivo-narrow": "^5.2.5",
+    "peerjs": "1.5.4"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}
