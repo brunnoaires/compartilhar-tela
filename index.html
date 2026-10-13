@@ -100,11 +100,11 @@
         </label>
         <label>Codec de vídeo
           <select id="codec">
-            <option value="auto" selected>Automático</option>
-            <option value="H264">H.264 (menos CPU)</option>
+            <option value="H264" selected>H.264 (recomendado, usa a placa de vídeo)</option>
             <option value="VP9">VP9</option>
             <option value="AV1">AV1</option>
             <option value="VP8">VP8</option>
+            <option value="auto">Padrão do navegador</option>
           </select>
         </label>
         <label>Áudio do PC
@@ -130,6 +130,10 @@
         <b>“Compartilhar áudio do sistema”</b>. Se escolher uma <b>aba</b>, marque “Compartilhar áudio da aba”.
         Janelas avulsas não levam áudio. No macOS só o áudio de abas funciona.
       </p>
+      <p class="hint">
+        <b>Jogos:</b> deixe o jogo em <b>janela sem bordas</b> (“tela cheia em janela”), porque a tela cheia exclusiva trava a captura.
+        Limitar o FPS do jogo (ex.: <code>fps_max 200</code> no CS2) também sobra processador para a transmissão.
+      </p>
       <p class="err" id="hostErr"></p>
       <div id="noAudioBox" hidden>
         <p class="hint">
@@ -154,6 +158,7 @@
             <button class="danger" id="stopBtn">Encerrar transmissão</button>
             <span class="badge" id="audioBadge"></span>
           </div>
+          <p class="hint" id="sendHint"></p>
         </div>
         <div>
           <div class="card">
@@ -278,6 +283,38 @@ function preferCodec(sdp, codec) {
   const pts = parts.slice(3);
   lines[mIdx] = parts.slice(0, 3).concat(preferred, pts.filter((p) => !preferred.includes(p))).join(" ");
   return lines.join("\r\n");
+}
+
+// ---------- estatísticas de envio: mostra onde está o gargalo ----------
+async function sendStats(pc, prev) {
+  const rep = await pc.getStats();
+  let out = null, src = null;
+  rep.forEach((r) => {
+    if (r.type === "outbound-rtp" && r.kind === "video") out = r;
+    if (r.type === "media-source" && r.kind === "video") src = r;
+  });
+  if (!out) return null;
+  const mbps = prev && out.timestamp > prev.ts ? ((out.bytesSent - prev.bytes) * 8) / (out.timestamp - prev.ts) / 1000 : 0;
+  const codec = out.codecId && rep.get(out.codecId) ? rep.get(out.codecId).mimeType.replace("video/", "") : "";
+  const impl = out.encoderImplementation || "";
+  const hw = out.powerEfficientEncoder === true || /MediaFoundation|NVENC|Nvidia|VideoToolbox|VAAPI|Accelerat|ExternalEncoder/i.test(impl);
+  const sw = !hw && (out.powerEfficientEncoder === false || /libvpx|OpenH264|libaom|dav1d|SVT/i.test(impl));
+  return {
+    next: { bytes: out.bytesSent, ts: out.timestamp },
+    w: out.frameWidth, h: out.frameHeight, fps: out.framesPerSecond, capFps: src ? src.framesPerSecond : null,
+    mbps, codec, enc: hw ? "placa de vídeo" : sw ? "processador" : "", limit: out.qualityLimitationReason || "none",
+  };
+}
+function describeSend(s, wantFps) {
+  const line = "Enviando " + (s.w || "?") + "×" + (s.h || "?") + " @ " + Math.round(s.fps || 0) + " fps · " + s.mbps.toFixed(1) + " Mbps · " +
+    s.codec + (s.enc ? " (" + s.enc + ")" : "") + (s.capFps != null ? " · captura " + Math.round(s.capFps) + " fps" : "");
+  let hint;
+  if (s.limit === "cpu") hint = "Gargalo: o processador não está dando conta. Use o codec H.264, deixe o jogo em janela sem bordas e limite o FPS do jogo.";
+  else if (s.limit === "bandwidth") hint = "Gargalo: a sua internet de upload. Diminua a taxa por pessoa ou a qualidade.";
+  else if (s.capFps != null && s.capFps < wantFps * 0.75) hint = "A captura está em " + Math.round(s.capFps) + " fps. Num jogo, isso costuma ser tela cheia exclusiva: troque para janela sem bordas. (Em tela parada é normal.)";
+  else if (s.enc === "processador") hint = "O vídeo está sendo codificado pelo processador. Se travar, escolha H.264 e veja se a aceleração de hardware do navegador está ligada.";
+  else hint = "Envio sem gargalo. Se ainda travar para alguém, o problema está na internet de quem assiste.";
+  return { line, hint };
 }
 
 // =====================================================================
@@ -524,10 +561,24 @@ function startHostMode() {
 
   function startHostStats() {
     clearInterval(startHostStats._t);
-    startHostStats._t = setInterval(() => {
+    let prev = null;
+    startHostStats._t = setInterval(async () => {
       const vt = stream && stream.getVideoTracks()[0]; if (!vt) return;
-      const s = vt.getSettings();
-      $("hostStats").textContent = "Capturando " + (s.width || "?") + "×" + (s.height || "?") + " @ " + Math.round(s.frameRate || 0) + " fps";
+      const v = [...viewers.values()].find((x) => x.state === "live" && x.call && x.call.peerConnection);
+      if (!v) {
+        const s = vt.getSettings();
+        $("hostStats").textContent = "Capturando " + (s.width || "?") + "×" + (s.height || "?") + " @ " + Math.round(s.frameRate || 0) + " fps";
+        $("sendHint").textContent = "";
+        prev = null;
+        return;
+      }
+      let st;
+      try { st = await sendStats(v.call.peerConnection, prev); } catch { return; }
+      if (!st) return;
+      prev = st.next;
+      const d = describeSend(st, cfg().fps);
+      $("hostStats").textContent = d.line;
+      $("sendHint").textContent = d.hint;
     }, 1000);
   }
 
@@ -594,7 +645,8 @@ function startViewerMode(roomId) {
         video.play().catch(() => { video.muted = true; video.play(); updateMute(); toast("Clique em “Som” para ouvir"); });
         hideMsg(); status(""); updateMute();
         const pc = call.peerConnection;
-        pc.getReceivers().forEach((r) => { if ("playoutDelayHint" in r) r.playoutDelayHint = 0; if ("jitterBufferTarget" in r) r.jitterBufferTarget = 0; });
+        // não força atraso zero (isso desliga a suavização e o vídeo engasga); um buffer pequeno deixa tudo fluido
+        pc.getReceivers().forEach((r) => { if ("jitterBufferTarget" in r) r.jitterBufferTarget = 150; });
         pc.addEventListener("connectionstatechange", () => {
           if (pc.connectionState === "disconnected") status("Conexão instável…");
           if (pc.connectionState === "connected") status("");
@@ -640,7 +692,8 @@ function startViewerMode(roomId) {
     if (v.codecId && rep.get(v.codecId)) codec = rep.get(v.codecId).mimeType.replace("video/", "");
     const rtt = pair && pair.currentRoundTripTime != null ? Math.round(pair.currentRoundTripTime * 1000) + " ms" : "?";
     $("viewStats").textContent = (v.frameWidth || "?") + "×" + (v.frameHeight || "?") + " @ " + Math.round(v.framesPerSecond || 0) +
-      " fps · " + (kbps / 1000).toFixed(1) + " Mbps · " + codec + " · ping " + rtt;
+      " fps · " + (kbps / 1000).toFixed(1) + " Mbps · " + codec + " · ping " + rtt +
+      (v.freezeCount != null ? " · travadas " + v.freezeCount : "") + (v.packetsLost ? " · perdas " + v.packetsLost : "");
   }, 1000);
 }
 
